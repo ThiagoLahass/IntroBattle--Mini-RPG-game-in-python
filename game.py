@@ -1,5 +1,6 @@
 import pygame
 import random
+from character import Character
 
 # Colors
 WHITE = (255, 255, 255)
@@ -8,7 +9,7 @@ RED = (255, 0, 0)
 
 # Font
 pygame.font.init()
-font = pygame.font.Font("freesansbold.ttf", 32)
+font = pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", 16)
 
 def draw_text(text, font, color, surface, x, y):
     """
@@ -26,6 +27,25 @@ def draw_text(text, font, color, surface, x, y):
     text_rect = text_obj.get_rect()
     text_rect.topleft = (x, y)
     surface.blit(text_obj, text_rect)
+
+def draw_heroes(screen, heroes, selected_index):
+    """
+    Draws the hero images on the screen.
+
+    Args:
+        screen (pygame.Surface): The game screen where the heroes are drawn.
+        heroes (list): A list of hero characters.
+        selected_index (int): The index of the currently selected hero.
+    """
+    x_positions = [50, 250, 450]
+    y_positions = [200, 400]
+    for i, hero in enumerate(heroes):
+        x = x_positions[i % 3]
+        y = y_positions[i // 3]
+        if i == selected_index:
+            pygame.draw.rect(screen, RED, (x-5, y-5, 110, 110), 3)
+        screen.blit(hero.image, (x, y))
+        draw_text(hero.name, font, BLACK, screen, x, y + 110)
 
 def selection_screen(screen, heroes):
     """
@@ -45,9 +65,7 @@ def selection_screen(screen, heroes):
         screen.fill(WHITE)
         draw_text('Select 3 characters:', font, BLACK, screen, 20, 20)
         
-        for i, hero in enumerate(heroes):
-            color = RED if i == index else BLACK
-            draw_text(hero.name, font, color, screen, 50, 100 + i * 40)
+        draw_heroes(screen, heroes, index)
         
         pygame.display.flip()
 
