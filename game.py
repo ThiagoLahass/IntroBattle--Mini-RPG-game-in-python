@@ -7,7 +7,8 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 
 # Font
-font = pygame.font.Font(None, 36)
+pygame.font.init()
+font = pygame.font.Font("freesansbold.ttf", 32)
 
 def draw_text(text, font, color, surface, x, y):
     """
@@ -86,12 +87,12 @@ def battle(screen, player_characters, enemies):
         # Draw player's characters
         for i, char in enumerate(player_characters):
             screen.blit(char.image, (100, 300 + i * 150))
-            draw_text(f'{char.name} HP: {char.hp}/{char.max_hp}', font, BLACK, screen, 100, 270 + i * 150)
+            draw_text(f'{char.name} HP: {char.hp:.2f}/{char.max_hp}', font, BLACK, screen, 100, 270 + i * 150)
         
         # Draw enemies
         for i, char in enumerate(enemies):
-            screen.blit(char.image, (824, 300 + i * 150))
-            draw_text(f'{char.name} HP: {char.hp}/{char.max_hp}', font, BLACK, screen, 824, 270 + i * 150)
+            screen.blit(char.image, (500, 300 + i * 150))
+            draw_text(f'{char.name} HP: {char.hp:.2f}/{char.max_hp}', font, BLACK, screen, 500, 270 + i * 150)
         
         # Draw battle interface
         current_char = turn_order[turn_index]
@@ -137,12 +138,12 @@ def battle(screen, player_characters, enemies):
                     screen.fill(WHITE)
                     for i, char in enumerate(player_characters):
                         screen.blit(char.image, (100, 300 + i * 150))
-                        draw_text(f'{char.name} HP: {char.hp}/{char.max_hp}', font, BLACK, screen, 100, 270 + i * 150)
+                        draw_text(f'{char.name} HP: {char.hp:.2f}/{char.max_hp}', font, BLACK, screen, 100, 270 + i * 150)
                     for i, char in enumerate(enemies):
-                        screen.blit(char.image, (824, 300 + i * 150))
-                        draw_text(f'{char.name} HP: {char.hp}/{char.max_hp}', font, BLACK, screen, 824, 270 + i * 150)
+                        screen.blit(char.image, (500, 300 + i * 150))
+                        draw_text(f'{char.name} HP: {char.hp:.2f}/{char.max_hp}', font, BLACK, screen, 500, 270 + i * 150)
                         if i == enemy_index:
-                            pygame.draw.rect(screen, RED, (824, 300 + i * 150, 100, 100), 3)
+                            pygame.draw.rect(screen, RED, (500, 300 + i * 150, 100, 100), 3)
                     pygame.display.flip()
                     clock.tick(30)
 
