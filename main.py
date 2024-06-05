@@ -17,13 +17,24 @@ pygame.display.set_caption("IntroBattle RPG")
 
 # Load background image
 background_image = pygame.image.load("IntroBattle/media/Background/background2.png")
+background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# The wizard image is inverted, so we need to change it
+# Load the image
+image_path = "IntroBattle/media/Personagens/wizard.png"
+image = pygame.image.load(image_path)
+# Flip horizontally
+inverted_image = pygame.transform.flip(image, True, False)
+# Save the inverted image (optional)
+pygame.image.save(inverted_image, "IntroBattle/media/Personagens/wizard_inverted.png")
 
 # Defining player characters
 heroes = [
-    Character("Paladino", 200, 30, 20, 10, "IntroBattle/media/Personagens/paladino.png"),
-    Character("Wizard", 120, 40, 10, 20, "IntroBattle/media/Personagens/wizard.png"),
+    Character("Paladin", 200, 30, 20, 10, "IntroBattle/media/Personagens/paladino.png"),
+    Character("Rogue", 100, 20, 10, 30, "IntroBattle/media/Personagens/rogue.png"),
+    Character("Wizard", 120, 40, 10, 20, "IntroBattle/media/Personagens/wizard_inverted.png"),
     Character("Hunter", 150, 35, 15, 25, "IntroBattle/media/Personagens/hunter.png"),
-    Character("Rogue", 100, 20, 10, 30, "IntroBattle/media/Personagens/rogue.png")
+    Character("Priest", 150, 35, 15, 25, "IntroBattle/media/Personagens/priest.png"),
 ]
 
 # Defining enemy characters
@@ -37,26 +48,16 @@ def main():
     Main function to run the game.
     """
     # Character selection
-    screen.blit(background_image, (0, 0))
+    player_characters = selection_screen(screen, background_image, heroes)
+
+    # Battle
+    battle(screen, background_image, player_characters, enemies)
+
+    # Game Over
+    screen.fill((0, 0, 0))
+    draw_text("Game Over", pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", 74), (255, 0, 0), screen, 200, 300)
     pygame.display.flip()
-    player_characters = selection_screen(screen, heroes)
-
-    # Main game loop
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        # Battle
-        battle(screen, player_characters, enemies)
-
-        # Game Over
-        screen.fill((0, 0, 0))
-        draw_text("Game Over", pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", 74), (255, 0, 0), screen, 200, 300)
-        pygame.display.flip()
-        pygame.time.wait(3000)
-        running = False
+    pygame.time.wait(3000)
 
     pygame.quit()
 
