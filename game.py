@@ -97,7 +97,7 @@ def draw_heroes(screen, heroes, selected_index, selected_heroes):
 
         if(hero in selected_heroes):
             text_color = BLUE
-        draw_text(hero.name, text_color, screen, scaled_center_x, scaled_center_y + 100)
+        draw_text(hero.name, text_color, screen, scaled_center_x, scaled_center_y + 105, int(14*scale))
 
 
 def selection_screen(screen, background_image, heroes):
@@ -125,7 +125,7 @@ def selection_screen(screen, background_image, heroes):
                   border_color=WHITE, border_thickness=2, padding=10)
 
         # Centralize o texto 'Select 3 Heroes:'
-        draw_text(text='Select 3 Heroes:', color=WHITE, surface=screen,
+        draw_text(text="Select 3 Heroes (tap 'Z'):", color=WHITE, surface=screen,
                   center_x=SCREEN_WIDTH//2, center_y=220, font_size=22,
                   background=True, bg_color=RED, border=True, border_thickness=1, border_color=WHITE)
 
