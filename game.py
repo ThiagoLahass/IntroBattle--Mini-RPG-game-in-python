@@ -9,6 +9,7 @@ SCREEN_HEIGHT = 768
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+BLUE = (0, 0, 255)
 
 # Font
 pygame.font.init()
@@ -46,7 +47,7 @@ def draw_text(text, color, surface, center_x, center_y, font_size=16, background
 
     surface.blit(text_obj, text_rect)
 
-def draw_heroes(screen, heroes, selected_index):
+def draw_heroes(screen, heroes, selected_index, selected_heroes):
     """
     Draws the hero images on the screen with scaling for the selected hero.
 
@@ -94,6 +95,8 @@ def draw_heroes(screen, heroes, selected_index):
             screen.blit(hero_image, (scaled_center_x - hero_image.get_width() / 2, scaled_center_y - hero_image.get_height() / 2))
             text_color = WHITE  # Default text color
 
+        if(hero in selected_heroes):
+            text_color = BLUE
         draw_text(hero.name, text_color, screen, scaled_center_x, scaled_center_y + 100)
 
 
@@ -126,7 +129,7 @@ def selection_screen(screen, background_image, heroes):
                   center_x=SCREEN_WIDTH//2, center_y=220, font_size=22,
                   background=True, bg_color=RED, border=True, border_thickness=1, border_color=WHITE)
 
-        draw_heroes(screen, heroes, index)
+        draw_heroes(screen, heroes, index, selected_characters)
 
         pygame.display.flip()
 
@@ -142,6 +145,8 @@ def selection_screen(screen, background_image, heroes):
                 if event.key == pygame.K_z:
                     if heroes[index] not in selected_characters:
                         selected_characters.append(heroes[index])
+                    else:
+                        selected_characters.remove(heroes[index])
 
         clock.tick(30)
 
