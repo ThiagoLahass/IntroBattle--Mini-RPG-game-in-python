@@ -20,7 +20,9 @@ menu_unselect_efect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selectio
 # Font
 pygame.font.init()
 
-def draw_text(text, color, surface, center_x, center_y, font_size=16, background=False, bg_color=(0, 0, 0), border=False, border_thickness=2, border_color=(0, 0, 0), padding=5):
+import pygame
+
+def draw_text(text, color, surface, x, y, font_size=16, background=False, bg_color=(0, 0, 0), border=False, border_thickness=2, border_color=(0, 0, 0), padding=5, alignment="center"):
     """
     Draws text on the given surface with specified options.
 
@@ -28,8 +30,8 @@ def draw_text(text, color, surface, center_x, center_y, font_size=16, background
         text (str): The text to be drawn.
         color (tuple): The color of the text.
         surface (pygame.Surface): The surface on which to draw the text.
-        center_x (int): The x-coordinate of the text's center.
-        center_y (int): The y-coordinate of the text's center.
+        x (int): The x-coordinate for the text position.
+        y (int): The y-coordinate for the text position.
         font_size (int): The size of the font.
         background (bool): Whether to fill the background with a color.
         bg_color (tuple): The color to fill the background (default is black).
@@ -37,13 +39,19 @@ def draw_text(text, color, surface, center_x, center_y, font_size=16, background
         border_thickness (int): The thickness of the border (default is 2).
         border_color (tuple): The color of the border (default is black).
         padding (int): The padding between the text and the background border (default is 5).
+        alignment (str): The alignment of the text ("center" or "topleft").
     """
     font = pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", font_size)
     text_obj = font.render(text, True, color)
     text_rect = text_obj.get_rect()
-    
-    # Calculate the top-left position based on center and text size
-    text_rect.center = (center_x, center_y)
+
+    # Set the position based on alignment
+    if alignment == "center":
+        text_rect.center = (x, y)
+    elif alignment == "topleft":
+        text_rect.topleft = (x, y)
+    else:
+        raise ValueError("Invalid alignment option. Choose 'center' or 'topleft'.")
 
     if background:
         pygame.draw.rect(surface, bg_color, (text_rect.left - padding, text_rect.top - padding, text_rect.width + 2 * padding, text_rect.height + 2 * padding))
@@ -126,14 +134,16 @@ def selection_screen(screen, background_image, heroes):
 
         # Centralize o texto 'IntroBattle'
         draw_text(text='IntroBattle', color=WHITE, surface=screen,
-                  center_x=SCREEN_WIDTH//2, center_y=100,
-                  font_size=40, background=True, bg_color=BLACK, border=True,
-                  border_color=WHITE, border_thickness=2, padding=10)
+                  x=SCREEN_WIDTH//2, y=100, font_size=40, background=True,
+                  bg_color=BLACK, border=True, border_color=WHITE, border_thickness=2,
+                  padding=10, alignment="center")
 
         # Centralize o texto 'Select 3 Heroes:'
         draw_text(text="Select 3 Heroes (tap 'Z'):", color=WHITE, surface=screen,
-                  center_x=SCREEN_WIDTH//2, center_y=220, font_size=22,
-                  background=True, bg_color=RED, border=True, border_thickness=1, border_color=WHITE)
+                  x=SCREEN_WIDTH//2, y=220, font_size=22,
+                  background=True, bg_color=RED, 
+                  border=True, border_thickness=1, border_color=WHITE,
+                  alignment="center")
 
         draw_heroes(screen, heroes, index, selected_characters)
 
@@ -162,6 +172,58 @@ def selection_screen(screen, background_image, heroes):
 
     return selected_characters
 
+def draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action=0, selected_target=0):
+    # Clear screen
+    screen.blit(background_image, (0, 0))
+
+    # Load arrow image
+    arrow = pygame.image.load("IntroBattle/media/UI/introcomp_seta.png")
+    arrow = pygame.transform.scale(arrow, (70, 70))
+    right_arrow = pygame.transform.rotate(arrow, 90)
+
+    # Load hero bg image
+    menu_bg = pygame.image.load("IntroBattle/media/UI/introcomp_menu.png")
+
+    # Actions menu for player characters
+    menu_bg = pygame.transform.scale(menu_bg, (580, 235))
+    screen.blit(menu_bg, (15 ,SCREEN_HEIGHT - 230 - 15))
+
+    menu_bg = pygame.transform.scale(menu_bg, (424, 235))
+    screen.blit(menu_bg, (SCREEN_WIDTH - 424 - 15 ,SCREEN_HEIGHT - 230 - 15 ))
+    
+    # Draw player characters
+    for i, char in enumerate(player_characters):
+        screen.blit(char.image, (200 + (((i+1) % 2) * 70), 200 + i * 80 ))
+    
+    # Draw enemies
+    for i, char in enumerate(enemies):
+        screen.blit(char.image, (650 - ((i % 2) * 70), 200 + i * 100))
+        
+        if i == selected_target:
+            screen.blit(arrow, (710 - ((i % 2) * 140 + char.image.get_width()) // 2, 145 + i * 90))
+    
+    # Current turn message
+    draw_text(f"{current_char.name}'s turn", WHITE, screen, x=110, y=570, font_size=18, alignment="topleft")
+
+    if current_char in player_characters:
+        actions_name = ["Attack", "Defend", "Insight", "Skill"]
+        # Lista de textos e suas respectivas coordenadas
+        actions = [
+            (actions_name[0], 110, 620),
+            (actions_name[1], 360, 620),
+            (actions_name[2], 110, 670),
+            (actions_name[3], 360, 670)
+        ]
+
+        for i, (text, x, y) in enumerate(actions):
+            draw_text(text, WHITE, screen, x=x, y=y, font_size=20, alignment="topleft")
+            if i == selected_action:
+                screen.blit(right_arrow, (x - 60, y - 25))
+    
+    # Player characters' HP
+    for i, char in enumerate(player_characters):
+        draw_text(f'{char.name} {char.hp:.0f} / {char.max_hp}', WHITE, screen, 650, 570 + i * 50, font_size=18, alignment="topleft")
+
 
 def battle(screen, background_image, player_characters, enemies):
     """
@@ -176,75 +238,64 @@ def battle(screen, background_image, player_characters, enemies):
     clock = pygame.time.Clock()
     turn_order = sorted(player_characters + enemies, key=lambda x: x.speed, reverse=True)
     turn_index = 0
-
+    selected_action = 0
+    selected_target = None
+    
     while player_characters and enemies:
         screen.blit(background_image, (0, 0))
         
-        # Draw player's characters
-        for i, char in enumerate(player_characters):
-            screen.blit(char.image, (100, 300 + i * 150))
-            draw_text(f'{char.name} HP: {char.hp:.2f}/{char.max_hp}', BLACK, screen, 100, 270 + i * 150)
-        
-        # Draw enemies
-        for i, char in enumerate(enemies):
-            screen.blit(char.image, (500, 300 + i * 150))
-            draw_text(f'{char.name} HP: {char.hp:.2f}/{char.max_hp}', BLACK, screen, 500, 270 + i * 150)
-        
-        # Draw battle interface
         current_char = turn_order[turn_index]
+        
         if current_char in player_characters:
-            draw_text(f"{current_char.name}'s turn. Choose an action:", BLACK, screen, 50, 50)
-            draw_text('1. Attack', BLACK, screen, 50, 100)
-            draw_text('2. Defend', BLACK, screen, 50, 140)
-            pygame.display.flip()
-
             action_chosen = False
             while not action_chosen:
+                selected_target = None
+                draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
+                pygame.display.flip()
+                
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         exit()
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_1:
-                            action_chosen = 'attack'
-                        if event.key == pygame.K_2:
-                            action_chosen = 'defend'
-                
-                clock.tick(30)
-
-            if action_chosen == 'attack':
-                enemy_index = 0
-                choosing_target = True
-                while choosing_target:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            pygame.quit()
-                            exit()
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_UP:
-                                enemy_index = (enemy_index - 1) % len(enemies)
-                            if event.key == pygame.K_DOWN:
-                                enemy_index = (enemy_index + 1) % len(enemies)
-                            if event.key == pygame.K_z:
-                                current_char.attack_target(enemies[enemy_index])
-                                if enemies[enemy_index].hp == 0:
-                                    enemies.pop(enemy_index)
-                                choosing_target = False
-
-                    screen.fill(WHITE)
-                    for i, char in enumerate(player_characters):
-                        screen.blit(char.image, (100, 300 + i * 150))
-                        draw_text(f'{char.name} HP: {char.hp:.2f}/{char.max_hp}', BLACK, screen, 100, 270 + i * 150)
-                    for i, char in enumerate(enemies):
-                        screen.blit(char.image, (500, 300 + i * 150))
-                        draw_text(f'{char.name} HP: {char.hp:.2f}/{char.max_hp}', BLACK, screen, 500, 270 + i * 150)
-                        if i == enemy_index:
-                            pygame.draw.rect(screen, RED, (500, 300 + i * 150, 100, 100), 3)
-                    pygame.display.flip()
-                    clock.tick(30)
-
-            if action_chosen == 'defend':
-                current_char.is_defending = True
+                        if event.key == pygame.K_UP:
+                            selected_action = (selected_action - 2) % 4
+                        if event.key == pygame.K_DOWN:
+                            selected_action = (selected_action + 2) % 4
+                        if event.key == pygame.K_LEFT:
+                            selected_action = (selected_action - 1) % 4
+                        if event.key == pygame.K_RIGHT:
+                            selected_action = (selected_action + 1) % 4
+                        if event.key == pygame.K_z:
+                            if selected_action == 0:  # Attack
+                                target_selected = False
+                                while not target_selected:
+                                    if selected_target is None:
+                                        selected_target = 0  # Default enemy to attack
+                                    draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
+                                    pygame.display.flip()
+                                    for sub_event in pygame.event.get():
+                                        if sub_event.type == pygame.QUIT:
+                                            pygame.quit()
+                                            exit()
+                                        if sub_event.type == pygame.KEYDOWN:
+                                            if sub_event.key == pygame.K_UP:
+                                                selected_target = (selected_target - 1) % len(enemies) if selected_target is not None else 0
+                                            if sub_event.key == pygame.K_DOWN:
+                                                selected_target = (selected_target + 1) % len(enemies) if selected_target is not None else 0
+                                            if sub_event.key == pygame.K_z:
+                                                current_char.attack_target(enemies[selected_target])
+                                                if enemies[selected_target].hp == 0:
+                                                    enemies.pop(selected_target)
+                                                target_selected = True
+                                                action_chosen = True
+                                            if sub_event.key == pygame.K_x:
+                                                target_selected = True
+                            if selected_action == 1:  # Defend
+                                current_char.is_defending = True
+                                action_chosen = True
+                        if event.key == pygame.K_x:
+                            action_chosen = True
         
         else:
             if current_char.hp > 0:
