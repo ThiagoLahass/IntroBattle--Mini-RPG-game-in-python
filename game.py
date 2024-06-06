@@ -11,6 +11,12 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
+# Efects settings
+pygame.mixer.init()
+menu_change_efect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_change.mp3")
+menu_select_efect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_select.mp3")
+menu_unselect_efect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_unselect.mp3")
+
 # Font
 pygame.font.init()
 
@@ -139,13 +145,17 @@ def selection_screen(screen, background_image, heroes):
                 exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP or event.key == pygame.K_LEFT:
+                    menu_change_efect.play()
                     index = (index - 1) % len(heroes)
                 if event.key == pygame.K_DOWN or event.key == pygame.K_RIGHT:
+                    menu_change_efect.play()
                     index = (index + 1) % len(heroes)
                 if event.key == pygame.K_z:
                     if heroes[index] not in selected_characters:
+                        menu_select_efect.play()
                         selected_characters.append(heroes[index])
                     else:
+                        menu_unselect_efect.play()
                         selected_characters.remove(heroes[index])
 
         clock.tick(30)

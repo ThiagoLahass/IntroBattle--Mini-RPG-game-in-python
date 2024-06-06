@@ -6,7 +6,7 @@ from game import selection_screen, battle, draw_text
 pygame.init()
 
 # Music settings
-pygame.mixer.music.load("IntroBattle/media/Sons/rpg-city.mp3")
+pygame.mixer.music.load("IntroBattle/media/Sons/Musics/rpg-city.mp3")
 pygame.mixer.music.play(-1)  # Loop the music indefinitely
 
 # Window settings
