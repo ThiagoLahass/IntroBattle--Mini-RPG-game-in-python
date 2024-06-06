@@ -234,6 +234,9 @@ def battle(screen, background_image, player_characters, enemies):
         background_image (pygame.Surface): The background image for the battle screen.
         player_characters (list): A list of the player's characters.
         enemies (list): A list of enemy characters.
+
+    Returns:
+        str: The result of the game, "Win" or "Game Over".
     """
     clock = pygame.time.Clock()
     turn_order = sorted(player_characters + enemies, key=lambda x: x.speed, reverse=True)
@@ -296,20 +299,23 @@ def battle(screen, background_image, player_characters, enemies):
                                 action_chosen = True
                         if event.key == pygame.K_x:
                             action_chosen = True
-        
         else:
             if current_char.hp > 0:
-                if random.choice([True, False]):
-                    target = random.choice(player_characters)
+                if random.choice([True, False]):    # If true enemie attacks
+                    target = random.choice(player_characters)   # chose a aleatory player hero
                     current_char.attack_target(target)
                     if target.hp == 0:
                         player_characters.remove(target)
-                else:
+                else:                               # Else, it defends
                     current_char.is_defending = True
         
         turn_index = (turn_index + 1) % len(turn_order)
         
         if not player_characters or not enemies:
+            if not player_characters:
+                return "Game Over"
+            else:
+                return "Win"
             break
 
         pygame.display.flip()

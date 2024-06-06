@@ -51,13 +51,20 @@ def main():
     player_characters = selection_screen(screen, background_image, heroes)
 
     # Battle
-    battle(screen, background_image, player_characters, enemies)
+    result = battle(screen, background_image, player_characters, enemies)
 
-    # Game Over
-    screen.fill((0, 0, 0))
-    draw_text("Game Over", pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", 74), (255, 0, 0), screen, 200, 300)
-    pygame.display.flip()
-    pygame.time.wait(3000)
+    if result == "Win":
+        # Win
+        screen.fill((0, 0, 0))
+        draw_text("WIN", pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", 74), (0, 255, 0), screen, 200, 300)
+        pygame.display.flip()
+        pygame.time.wait(3000)
+    else:
+        # Game Over
+        screen.fill((0, 0, 0))
+        draw_text("GAME OVER", pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", 74), (255, 0, 0), screen, 200, 300)
+        pygame.display.flip()
+        pygame.time.wait(3000)
 
     pygame.quit()
 
