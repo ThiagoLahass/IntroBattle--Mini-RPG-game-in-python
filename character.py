@@ -60,3 +60,6 @@ class Character:
             damage /= 2
             target.is_defending = False
         target.take_damage(damage)
+
+    def reset_hp(self):
+        self.hp = self.max_hp

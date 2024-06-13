@@ -1,6 +1,7 @@
 import pygame
 from character import Character
-from game import selection_screen, battle, draw_text
+from game import selection_screen, battle, finish_screen
+import game
 
 # Initialize Pygame
 pygame.init()
@@ -47,24 +48,47 @@ def main():
     """
     Main function to run the game.
     """
-    # Character selection
-    player_characters = selection_screen(screen, background_image, heroes)
+    quit = False
+    restart = False
+    menu = True
 
-    # Battle
-    result = battle(screen, background_image, player_characters, enemies)
+    while(True):
+        if quit:
+            pygame.quit()
+            break
+        elif restart:
+            # restarting the hp of the characters
+            for character in enemies:
+                character.reset_hp()
+            for character in player_characters:
+                character.reset_hp()
+            # Battle
+            result = battle(screen, background_image, player_characters, enemies)
+        elif menu:
+            # restarting the hp of the characters
+            for character in enemies:
+                character.reset_hp()
+            for character in heroes:
+                character.reset_hp()
+            # Character selection
+            player_characters = selection_screen(screen, background_image, heroes)
+            # Battle
+            result = battle(screen, background_image, player_characters, enemies)
+            print(f"'{result}'")
 
-    if result == "Win":
-        # Win
-        screen.fill((0, 0, 0))
-        draw_text("WIN", pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", 74), (0, 255, 0), screen, 200, 300)
-        pygame.display.flip()
-        pygame.time.wait(3000)
-    else:
-        # Game Over
-        screen.fill((0, 0, 0))
-        draw_text("GAME OVER", pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", 74), (255, 0, 0), screen, 200, 300)
-        pygame.display.flip()
-        pygame.time.wait(3000)
+        option = finish_screen(result=result, screen=screen, SCREEN_WIDTH=SCREEN_WIDTH, SCREEN_HEIGHT=SCREEN_HEIGHT)
+        if(option == "quit"):
+            quit = True
+            restart = False
+            menu = False
+        elif(option == "restart"):
+            restart = True
+            menu = False
+            quit = False
+        elif(option == "menu"):
+            menu = True
+            restart = False
+            quit = False
 
     pygame.quit()
 

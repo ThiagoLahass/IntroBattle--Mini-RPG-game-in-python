@@ -1,5 +1,7 @@
 import pygame
 import random
+import sys
+import character
 
 # Window settings
 SCREEN_WIDTH = 1024
@@ -9,6 +11,7 @@ SCREEN_HEIGHT = 768
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
 # Efects settings
@@ -245,8 +248,6 @@ def battle(screen, background_image, player_characters, enemies):
     selected_target = None
     
     while player_characters and enemies:
-        screen.blit(background_image, (0, 0))
-        
         current_char = turn_order[turn_index]
         
         if current_char in player_characters:
@@ -287,7 +288,10 @@ def battle(screen, background_image, player_characters, enemies):
                                             if sub_event.key == pygame.K_DOWN:
                                                 selected_target = (selected_target + 1) % len(enemies) if selected_target is not None else 0
                                             if sub_event.key == pygame.K_z:
+                                                print(f'{current_char.name} is attacking {enemies[selected_target].name}')
+                                                print(f'hp of {enemies[selected_target].name} before: {enemies[selected_target].hp}')
                                                 current_char.attack_target(enemies[selected_target])
+                                                print(f'hp of {enemies[selected_target].name} after: {enemies[selected_target].hp}')
                                                 if enemies[selected_target].hp == 0:
                                                     enemies.pop(selected_target)
                                                 target_selected = True
@@ -295,18 +299,23 @@ def battle(screen, background_image, player_characters, enemies):
                                             if sub_event.key == pygame.K_x:
                                                 target_selected = True
                             if selected_action == 1:  # Defend
+                                print(f'{current_char.name} is defending')
                                 current_char.is_defending = True
                                 action_chosen = True
                         if event.key == pygame.K_x:
                             action_chosen = True
         else:
             if current_char.hp > 0:
-                if random.choice([True, False]):    # If true enemie attacks
+                if random.choice([True, False]):                # If true enemie attacks (Else, it defends)
                     target = random.choice(player_characters)   # chose a aleatory player hero
+                    print(f'{current_char.name} is attacking {target.name}')
+                    print(f'hp of {target.name} before: {target.hp}')
                     current_char.attack_target(target)
+                    print(f'hp of {target.name} after: {target.hp}')
                     if target.hp == 0:
                         player_characters.remove(target)
-                else:                               # Else, it defends
+                else:                                           # Else, it defends
+                    print(f'{current_char.name} is defending')
                     current_char.is_defending = True
         
         turn_index = (turn_index + 1) % len(turn_order)
@@ -320,3 +329,34 @@ def battle(screen, background_image, player_characters, enemies):
 
         pygame.display.flip()
         clock.tick(30)
+
+def finish_screen(result, screen, SCREEN_WIDTH, SCREEN_HEIGHT):
+    screen.fill((0, 0, 0))
+    if result == "Win":
+        draw_text(text="YOU WIN", color=GREEN, surface=screen, x=SCREEN_WIDTH/2, y=SCREEN_HEIGHT/2 - 200, font_size=74, border=True, border_color=GREEN, border_thickness=2)
+    else:
+        draw_text(text="GAME OVER", color=RED, surface=screen, x=SCREEN_WIDTH/2, y=SCREEN_HEIGHT/2 - 200, font_size=74, border=True, border_color=RED, border_thickness=2)
+    
+    # Adiciona as opções de menu
+    draw_text(text="Press Q to Quit", color=(255, 255, 255), surface=screen, x=SCREEN_WIDTH/2, y=SCREEN_HEIGHT/2 + 50, font_size=36, border=True, border_color=WHITE, border_thickness=2)
+    draw_text(text="Press R to Restart", color=(255, 255, 255), surface=screen, x=SCREEN_WIDTH/2, y=SCREEN_HEIGHT/2 + 100, font_size=36, border=True, border_color=WHITE, border_thickness=2)
+    draw_text(text="Press M for Menu", color=(255, 255, 255), surface=screen, x=SCREEN_WIDTH/2, y=SCREEN_HEIGHT/2 + 150, font_size=36, border=True, border_color=WHITE, border_thickness=2)
+
+    pygame.display.flip()
+
+    # Espera por uma ação do jogador
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    return "quit"
+                elif event.key == pygame.K_r:
+                    waiting = False
+                    return "restart"
+                elif event.key == pygame.K_m:
+                    waiting = False
+                    return "menu"
