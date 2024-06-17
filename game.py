@@ -1,7 +1,7 @@
 import pygame
 import random
 import sys
-import character
+import time
 
 # Window settings
 SCREEN_WIDTH = 1024
@@ -16,9 +16,15 @@ BLUE = (0, 0, 255)
 
 # Efects settings
 pygame.mixer.init()
-menu_change_efect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_change.mp3")
-menu_select_efect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_select.mp3")
-menu_unselect_efect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_unselect.mp3")
+menu_change_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_change.mp3")
+menu_select_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_select.mp3")
+menu_unselect_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_unselect.mp3")
+game_win_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/game_win.mp3")
+game_over_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/game_over.mp3")
+
+
+# Load the blood GIF image
+blood_gif = pygame.image.load("IntroBattle/media/Effects/blood_effect.gif")
 
 # Font
 pygame.font.init()
@@ -158,17 +164,17 @@ def selection_screen(screen, background_image, heroes):
                 exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP or event.key == pygame.K_LEFT:
-                    menu_change_efect.play()
+                    menu_change_effect.play()
                     index = (index - 1) % len(heroes)
                 if event.key == pygame.K_DOWN or event.key == pygame.K_RIGHT:
-                    menu_change_efect.play()
+                    menu_change_effect.play()
                     index = (index + 1) % len(heroes)
                 if event.key == pygame.K_z:
                     if heroes[index] not in selected_characters:
-                        menu_select_efect.play()
+                        menu_select_effect.play()
                         selected_characters.append(heroes[index])
                     else:
-                        menu_unselect_efect.play()
+                        menu_unselect_effect.play()
                         selected_characters.remove(heroes[index])
 
         clock.tick(30)
@@ -196,10 +202,17 @@ def draw_battle_interface(screen, background_image, player_characters, enemies, 
     
     # Draw player characters
     for i, char in enumerate(player_characters):
+        player_characters[i].position = (200 + (((i+1) % 2) * 70) + player_characters[i].image.get_width()/2, 200 + i * 80 + player_characters[i].image.get_height()/2 )
         screen.blit(char.image, (200 + (((i+1) % 2) * 70), 200 + i * 80 ))
+
+        if char == current_char:
+            screen.blit(arrow, (170 + (((i+1) % 2) * 70) + char.image.get_width() // 2, 140 + i * 80))
     
     # Draw enemies
     for i, char in enumerate(enemies):
+        char.position = (650 - ((i % 2) * 70) + char.image.get_width()/2, 200 + i * 100 + char.image.get_height()/2)
+        draw_text(f"{char.name}", RED, screen, x=650 - ((i % 2) * 70) + 100, y=200 + i * 100 + 30, font_size=18, alignment="topleft")
+        draw_text(f"HP: {char.hp:.0f} / {char.max_hp}", RED, screen, x=650 - ((i % 2) * 70) + 100, y=200 + i * 100 + 60, font_size=18, alignment="topleft")
         screen.blit(char.image, (650 - ((i % 2) * 70), 200 + i * 100))
         
         if i == selected_target:
@@ -246,6 +259,8 @@ def battle(screen, background_image, player_characters, enemies):
     turn_index = 0
     selected_action = 0
     selected_target = None
+
+    all_sprites_group = pygame.sprite.Group()
     
     while player_characters and enemies:
         current_char = turn_order[turn_index]
@@ -264,13 +279,18 @@ def battle(screen, background_image, player_characters, enemies):
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_UP:
                             selected_action = (selected_action - 2) % 4
+                            menu_change_effect.play()
                         if event.key == pygame.K_DOWN:
                             selected_action = (selected_action + 2) % 4
+                            menu_change_effect.play()
                         if event.key == pygame.K_LEFT:
                             selected_action = (selected_action - 1) % 4
+                            menu_change_effect.play()
                         if event.key == pygame.K_RIGHT:
                             selected_action = (selected_action + 1) % 4
+                            menu_change_effect.play()
                         if event.key == pygame.K_z:
+                            menu_select_effect.play()
                             if selected_action == 0:  # Attack
                                 target_selected = False
                                 while not target_selected:
@@ -285,12 +305,27 @@ def battle(screen, background_image, player_characters, enemies):
                                         if sub_event.type == pygame.KEYDOWN:
                                             if sub_event.key == pygame.K_UP:
                                                 selected_target = (selected_target - 1) % len(enemies) if selected_target is not None else 0
+                                                menu_change_effect.play()
                                             if sub_event.key == pygame.K_DOWN:
                                                 selected_target = (selected_target + 1) % len(enemies) if selected_target is not None else 0
+                                                menu_change_effect.play()
                                             if sub_event.key == pygame.K_z:
                                                 print(f'{current_char.name} is attacking {enemies[selected_target].name}')
                                                 print(f'hp of {enemies[selected_target].name} before: {enemies[selected_target].hp}')
-                                                current_char.attack_target(enemies[selected_target])
+                                                
+                                                damage = current_char.attack_target(enemies[selected_target], all_sprites_group)
+                                                
+                                                # Attack animation
+                                                while all_sprites_group.__len__():
+                                                    draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
+                                                    all_sprites_group.update()
+                                                    all_sprites_group.draw(screen)
+                                                    pygame.display.flip()
+                                                
+                                                # After the animation is finished, we can take the damage
+                                                shake_screen(screen, intensity=3, duration=50)
+                                                enemies[selected_target].take_damage(damage)
+
                                                 print(f'hp of {enemies[selected_target].name} after: {enemies[selected_target].hp}')
                                                 if enemies[selected_target].hp == 0:
                                                     enemies.pop(selected_target)
@@ -298,6 +333,7 @@ def battle(screen, background_image, player_characters, enemies):
                                                 action_chosen = True
                                             if sub_event.key == pygame.K_x:
                                                 target_selected = True
+                                                menu_unselect_effect.play()
                             if selected_action == 1:  # Defend
                                 print(f'{current_char.name} is defending')
                                 current_char.is_defending = True
@@ -306,24 +342,56 @@ def battle(screen, background_image, player_characters, enemies):
                             action_chosen = True
         else:
             if current_char.hp > 0:
-                if random.choice([True, False]):                # If true enemie attacks (Else, it defends)
-                    target = random.choice(player_characters)   # chose a aleatory player hero
+                # Define probabilities: 70% chance of True, 30% chance of False
+                probabilities = [0.7, 0.3]
+                options = [True, False]
+
+                if (random.choices(options, probabilities)[0]):             # If true enemie attacks (Else, it defends)
+                    target = random.choice(player_characters)               # chose a aleatory player hero
                     print(f'{current_char.name} is attacking {target.name}')
                     print(f'hp of {target.name} before: {target.hp}')
-                    current_char.attack_target(target)
+                    damage = current_char.attack_target(target, all_sprites_group)
+
+                    # delay
+                    pygame.time.delay(500)
+                    # Attack animation
+                    while all_sprites_group.__len__():
+                        draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
+                        draw_text(f"Attacking {target.name}'s!", WHITE, screen, x=110, y=670, font_size=18, alignment="topleft")
+                        all_sprites_group.update()
+                        all_sprites_group.draw(screen)
+                        pygame.display.flip()
+
+                    # After the animation is finished, we can take the damage
+                    shake_screen(screen, intensity=3, duration=50)
+                    target.take_damage(damage)
+
                     print(f'hp of {target.name} after: {target.hp}')
                     if target.hp == 0:
                         player_characters.remove(target)
+
+                    draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
+                    draw_text(f"Attacking {target.name}'s!", WHITE, screen, x=110, y=670, font_size=18, alignment="topleft")
+                    pygame.display.flip()
+                    pygame.time.delay(2000)
+
                 else:                                           # Else, it defends
                     print(f'{current_char.name} is defending')
                     current_char.is_defending = True
+                    draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
+                    draw_text(f"{current_char.name}'s defending!", WHITE, screen, x=110, y=670, font_size=18, alignment="topleft")
+                    pygame.display.flip()
+                    pygame.time.delay(3000)
+
         
         turn_index = (turn_index + 1) % len(turn_order)
         
         if not player_characters or not enemies:
             if not player_characters:
+                game_over_effect.play()
                 return "Game Over"
             else:
+                game_win_effect.play()
                 return "Win"
             break
 
@@ -353,10 +421,37 @@ def finish_screen(result, screen, SCREEN_WIDTH, SCREEN_HEIGHT):
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
+                    menu_select_effect.play()
                     return "quit"
                 elif event.key == pygame.K_r:
+                    menu_select_effect.play()
                     waiting = False
                     return "restart"
                 elif event.key == pygame.K_m:
+                    menu_select_effect.play()
                     waiting = False
                     return "menu"
+
+def shake_screen(screen, intensity, duration):
+    """
+    Simulates a screen shake effect in Pygame.
+
+    Parameters:
+    - screen (pygame.Surface): The surface to apply the screen shake effect on.
+    - intensity (int): The intensity of the screen shake, determining how much the screen will move in pixels.
+    - duration (float): The duration of the screen shake effect in miliseconds.
+
+    Returns:
+    None
+    """
+    start_time = pygame.time.get_ticks()
+    # Create a copy of the screen
+    copied_screen = screen.copy()
+
+    while pygame.time.get_ticks() - start_time < duration:
+        dx, dy = random.randint(-intensity, intensity), random.randint(-intensity, intensity)
+        screen.blit(screen, (dx, dy))  # Restore the copied screen
+        pygame.display.flip()
+    
+    screen.blit(copied_screen, (0, 0))
+    pygame.display.flip()

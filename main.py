@@ -31,17 +31,17 @@ pygame.image.save(inverted_image, "IntroBattle/media/Personagens/wizard_inverted
 
 # Defining player characters
 heroes = [
-    Character(name="Paladin",   hp=200, attack=30, defense=20, speed=10, image_path="IntroBattle/media/Personagens/paladino.png"),
-    Character(name="Rogue",     hp=100, attack=20, defense=10, speed=30, image_path="IntroBattle/media/Personagens/rogue.png"),
-    Character(name="Wizard",    hp=120, attack=40, defense=10, speed=20, image_path="IntroBattle/media/Personagens/wizard_inverted.png"),
-    Character(name="Hunter",    hp=150, attack=35, defense=15, speed=25, image_path="IntroBattle/media/Personagens/hunter.png"),
-    Character(name="Priest",    hp=150, attack=35, defense=15, speed=25, image_path="IntroBattle/media/Personagens/priest.png"),
+    Character(name="Paladin",   hp=200, attack=30, defense=20, speed=10, image_path="IntroBattle/media/Personagens/paladino.png", weapon_sprite="IntroBattle/media/Weapons/arrow.png", weapon_speed=10),
+    Character(name="Rogue",     hp=100, attack=20, defense=10, speed=30, image_path="IntroBattle/media/Personagens/rogue.png", weapon_sprite="IntroBattle/media/Weapons/arrow.png", weapon_speed=10),
+    Character(name="Wizard",    hp=120, attack=40, defense=10, speed=20, image_path="IntroBattle/media/Personagens/wizard_inverted.png", weapon_sprite="IntroBattle/media/Weapons/arrow.png", weapon_speed=10),
+    Character(name="Hunter",    hp=150, attack=35, defense=15, speed=25, image_path="IntroBattle/media/Personagens/hunter.png", weapon_sprite="IntroBattle/media/Weapons/arrow.png", weapon_speed=10),
+    Character(name="Priest",    hp=150, attack=35, defense=15, speed=25, image_path="IntroBattle/media/Personagens/priest.png", weapon_sprite="IntroBattle/media/Weapons/arrow.png", weapon_speed=10),
 ]
 
 # Defining enemy characters
 enemies = [
-    Character(name="Necromante",    hp=180, attack=25, defense=20, speed=5, image_path="IntroBattle/media/Personagens/necromante_inverted.png"),
-    Character(name="Caveira",       hp=300, attack=50, defense=30, speed=8, image_path="IntroBattle/media/Personagens/skeleton_inverted.png")
+    Character(name="Necromante",    hp=100, attack=25, defense=20, speed=5, image_path="IntroBattle/media/Personagens/necromante_inverted.png", weapon_sprite="IntroBattle/media/Weapons/arrow.png", weapon_speed=10),
+    Character(name="Caveira",       hp=100, attack=50, defense=30, speed=8, image_path="IntroBattle/media/Personagens/skeleton_inverted.png", weapon_sprite="IntroBattle/media/Weapons/arrow.png", weapon_speed=10)
 ]
 
 def main():
@@ -54,26 +54,33 @@ def main():
 
     while(True):
         if quit:
+            print("Quiting...")
             pygame.quit()
             break
         elif restart:
-            # restarting the hp of the characters
+            print("Restarting...")
+            # restarting the characters
             for character in enemies:
                 character.reset_hp()
             for character in player_characters:
                 character.reset_hp()
+            enemies_temp = enemies.copy()
+            player_characters_temp = player_characters.copy()
             # Battle
-            result = battle(screen, background_image, player_characters, enemies)
+            result = battle(screen, background_image, player_characters_temp, enemies_temp)
         elif menu:
-            # restarting the hp of the characters
+            print("Menu...")
+            # restarting the characters
             for character in enemies:
                 character.reset_hp()
             for character in heroes:
                 character.reset_hp()
+            enemies_temp = enemies.copy()
+            heroes_temp = heroes.copy()
             # Character selection
-            player_characters = selection_screen(screen, background_image, heroes)
+            player_characters = selection_screen(screen, background_image, heroes_temp)
             # Battle
-            result = battle(screen, background_image, player_characters, enemies)
+            result = battle(screen, background_image, player_characters, enemies_temp)
             print(f"'{result}'")
 
         option = finish_screen(result=result, screen=screen, SCREEN_WIDTH=SCREEN_WIDTH, SCREEN_HEIGHT=SCREEN_HEIGHT)
