@@ -69,10 +69,12 @@ class Character:
         print(all_sprites_group)
 
         # Calculate damage
-        damage = self.attack * (50 / (50 + target.defense))
+        defense_value = target.defense
         if target.is_defending:
-            damage /= 2
+            defense_value *= 2
             target.is_defending = False
+        
+        damage = self.attack * (50 / (50 + defense_value))
 
         # Apply damage to the target
         return damage

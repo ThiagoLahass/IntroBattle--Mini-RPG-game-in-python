@@ -16,15 +16,17 @@ BLUE = (0, 0, 255)
 
 # Efects settings
 pygame.mixer.init()
-menu_change_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_change.mp3")
-menu_select_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_select.mp3")
-menu_unselect_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/selection_menu_unselect.mp3")
-game_win_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/game_win.mp3")
-game_over_effect = pygame.mixer.Sound("IntroBattle/media/Sons/Efects/game_over.mp3")
+
+menu_change_effect      = pygame.mixer.Sound("media/Sons/Efects/selection_menu_change.mp3")
+menu_select_effect      = pygame.mixer.Sound("media/Sons/Efects/selection_menu_select.mp3")
+menu_unselect_effect    = pygame.mixer.Sound("media/Sons/Efects/selection_menu_unselect.mp3")
+game_win_effect         = pygame.mixer.Sound("media/Sons/Efects/game_win.mp3")
+game_over_effect        = pygame.mixer.Sound("media/Sons/Efects/game_over.mp3")
+take_damage_effect      = pygame.mixer.Sound("media/Sons/Efects/take_damage.mp3")
 
 
 # Load the blood GIF image
-blood_gif = pygame.image.load("IntroBattle/media/Effects/blood_effect.gif")
+blood_gif = pygame.image.load("media/Effects/blood_effect.gif")
 
 # Font
 pygame.font.init()
@@ -50,7 +52,7 @@ def draw_text(text, color, surface, x, y, font_size=16, background=False, bg_col
         padding (int): The padding between the text and the background border (default is 5).
         alignment (str): The alignment of the text ("center" or "topleft").
     """
-    font = pygame.font.Font("IntroBattle/media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", font_size)
+    font = pygame.font.Font("media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", font_size)
     text_obj = font.render(text, True, color)
     text_rect = text_obj.get_rect()
 
@@ -81,11 +83,11 @@ def draw_heroes(screen, heroes, selected_index, selected_heroes):
     """
 
     # Load arrow image
-    arrow = pygame.image.load("IntroBattle/media/UI/introcomp_seta.png")
+    arrow = pygame.image.load("media/UI/introcomp_seta.png")
     arrow = pygame.transform.scale(arrow, (70, 70))
 
     # Load hero bg image
-    hero_bg = pygame.image.load("IntroBattle/media/UI/introcomp_menu.png")
+    hero_bg = pygame.image.load("media/UI/introcomp_menu.png")
     hero_bg = pygame.transform.scale(hero_bg, (140, 140))
 
     x_positions = [201, 457, 713, 289, 629]
@@ -186,12 +188,12 @@ def draw_battle_interface(screen, background_image, player_characters, enemies, 
     screen.blit(background_image, (0, 0))
 
     # Load arrow image
-    arrow = pygame.image.load("IntroBattle/media/UI/introcomp_seta.png")
+    arrow = pygame.image.load("media/UI/introcomp_seta.png")
     arrow = pygame.transform.scale(arrow, (70, 70))
     right_arrow = pygame.transform.rotate(arrow, 90)
 
     # Load hero bg image
-    menu_bg = pygame.image.load("IntroBattle/media/UI/introcomp_menu.png")
+    menu_bg = pygame.image.load("media/UI/introcomp_menu.png")
 
     # Actions menu for player characters
     menu_bg = pygame.transform.scale(menu_bg, (580, 235))
@@ -219,7 +221,7 @@ def draw_battle_interface(screen, background_image, player_characters, enemies, 
             screen.blit(arrow, (710 - ((i % 2) * 140 + char.image.get_width()) // 2, 145 + i * 90))
     
     # Current turn message
-    draw_text(f"{current_char.name}'s turn", WHITE, screen, x=110, y=570, font_size=18, alignment="topleft")
+    draw_text(f"{current_char.name}'s turn!", WHITE, screen, x=110, y=570, font_size=18, alignment="topleft")
 
     if current_char in player_characters:
         actions_name = ["Attack", "Defend", "Insight", "Skill"]
@@ -324,6 +326,7 @@ def battle(screen, background_image, player_characters, enemies):
                                                 
                                                 # After the animation is finished, we can take the damage
                                                 shake_screen(screen, intensity=3, duration=50)
+                                                take_damage_effect.play()
                                                 enemies[selected_target].take_damage(damage)
 
                                                 print(f'hp of {enemies[selected_target].name} after: {enemies[selected_target].hp}')
@@ -338,6 +341,37 @@ def battle(screen, background_image, player_characters, enemies):
                                 print(f'{current_char.name} is defending')
                                 current_char.is_defending = True
                                 action_chosen = True
+                            if selected_action == 2:  # Insight
+                                x_selected = False
+                                z_selected = False
+                                while not x_selected:
+                                    if selected_target is None:
+                                        selected_target = 0  # Default enemy selected
+                                    if not z_selected:
+                                        draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
+                                        pygame.display.flip()
+                                    for sub_event in pygame.event.get():
+                                        if sub_event.type == pygame.QUIT:
+                                            pygame.quit()
+                                            exit()
+                                        if sub_event.type == pygame.KEYDOWN:
+                                            if sub_event.key == pygame.K_UP:
+                                                selected_target = (selected_target - 1) % len(enemies) if selected_target is not None else 0
+                                                menu_change_effect.play()
+                                            if sub_event.key == pygame.K_DOWN:
+                                                selected_target = (selected_target + 1) % len(enemies) if selected_target is not None else 0
+                                                menu_change_effect.play()
+                                            if sub_event.key == pygame.K_z:
+                                                menu_select_effect.play()
+                                                z_selected = True
+                                                draw_insights_info(screen, enemies[selected_target])
+                                                pygame.display.flip()
+                                            if sub_event.key == pygame.K_x:
+                                                menu_unselect_effect.play()
+                                                x_selected = True
+                                                
+                            if selected_action == 3:  # SKill
+                                pass
                         if event.key == pygame.K_x:
                             action_chosen = True
         else:
@@ -364,6 +398,7 @@ def battle(screen, background_image, player_characters, enemies):
 
                     # After the animation is finished, we can take the damage
                     shake_screen(screen, intensity=3, duration=50)
+                    take_damage_effect.play()
                     target.take_damage(damage)
 
                     print(f'hp of {target.name} after: {target.hp}')
@@ -455,3 +490,30 @@ def shake_screen(screen, intensity, duration):
     
     screen.blit(copied_screen, (0, 0))
     pygame.display.flip()
+
+def draw_insights_info(screen, enemie):
+    menu_bg = pygame.image.load("media/UI/introcomp_menu.png")
+
+    # Actions menu for player characters
+    menu_bg = pygame.transform.scale(menu_bg, (580, 235))
+    screen.blit(menu_bg, (15 ,SCREEN_HEIGHT - 230 - 15))
+
+    menu_bg = pygame.transform.scale(menu_bg, (424, 235))
+    screen.blit(menu_bg, (SCREEN_WIDTH - 424 - 15 ,SCREEN_HEIGHT - 230 - 15 ))
+
+    # Current turn message
+    draw_text(f"{enemie.name}'s Info!", WHITE, screen, x=110, y=570, font_size=18, alignment="topleft")
+
+    
+    infos_name = ["Attack: ", "Defend: ", "Life: "]
+    # Lista de textos e suas respectivas coordenadas
+    infos = [
+        (infos_name[0], f"{enemie.attack:.0f}", 110, 620),
+        (infos_name[1], f"{enemie.defense:.0f}", 110, 655),
+        (infos_name[2], f"{enemie.hp:.0f}", 110, 690)
+    ]
+
+    for (info_name, info, x, y) in infos:
+        draw_text(info_name + info, WHITE, screen, x=x, y=y, font_size=18, alignment="topleft")
+    
+    draw_text("Tap 'X' to go back!", WHITE, screen, x=650, y=570, font_size=16, alignment="topleft")
