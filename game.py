@@ -1,7 +1,9 @@
 import pygame
 import random
 import sys
+import copy
 import time
+import character
 
 # Window settings
 SCREEN_WIDTH = 1024
@@ -183,7 +185,7 @@ def selection_screen(screen, background_image, heroes):
 
     return selected_characters
 
-def draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action=0, selected_target=0):
+def draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action=0, selected_target=0, display_actions=True):
     # Clear screen
     screen.blit(background_image, (0, 0))
 
@@ -223,25 +225,25 @@ def draw_battle_interface(screen, background_image, player_characters, enemies, 
     # Current turn message
     draw_text(f"{current_char.name}'s turn!", WHITE, screen, x=110, y=570, font_size=18, alignment="topleft")
 
-    if current_char in player_characters:
-        actions_name = ["Attack", "Defend", "Insight", "Skill"]
-        # Lista de textos e suas respectivas coordenadas
-        actions = [
-            (actions_name[0], 110, 620),
-            (actions_name[1], 360, 620),
-            (actions_name[2], 110, 670),
-            (actions_name[3], 360, 670)
-        ]
+    if display_actions:
+        if current_char in player_characters:
+            actions_name = ["Attack", "Defend", "Insight", "Skill"]
+            # Lista de textos e suas respectivas coordenadas
+            actions = [
+                (actions_name[0], 110, 620),
+                (actions_name[1], 360, 620),
+                (actions_name[2], 110, 670),
+                (actions_name[3], 360, 670)
+            ]
 
-        for i, (text, x, y) in enumerate(actions):
-            draw_text(text, WHITE, screen, x=x, y=y, font_size=20, alignment="topleft")
-            if i == selected_action:
-                screen.blit(right_arrow, (x - 60, y - 25))
-    
+            for i, (text, x, y) in enumerate(actions):
+                draw_text(text, WHITE, screen, x=x, y=y, font_size=20, alignment="topleft")
+                if i == selected_action:
+                    screen.blit(right_arrow, (x - 60, y - 25))
+
     # Player characters' HP
     for i, char in enumerate(player_characters):
         draw_text(f'{char.name} {char.hp:.0f} / {char.max_hp}', WHITE, screen, 650, 570 + i * 50, font_size=18, alignment="topleft")
-
 
 def battle(screen, background_image, player_characters, enemies):
     """
@@ -256,6 +258,9 @@ def battle(screen, background_image, player_characters, enemies):
     Returns:
         str: The result of the game, "Win" or "Game Over".
     """
+    enemies_copy = enemies.copy()
+    enemies_num = len(enemies)
+
     clock = pygame.time.Clock()
     turn_order = sorted(player_characters + enemies, key=lambda x: x.speed, reverse=True)
     turn_index = 0
@@ -371,16 +376,176 @@ def battle(screen, background_image, player_characters, enemies):
                                                 x_selected = True
                                                 
                             if selected_action == 3:  # SKill
-                                pass
+                                menu_select_effect.play()
+                                if current_char.num_rounds_to_use_skill == 0:
+                                    if current_char.name == "Paladin":
+                                        action = current_char.paladin_protect(player_characters)
+                                        draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
+                                        
+                                        line1, line2, line3 = split_string_into_three_lines(action)
+                                        draw_text(f"{line1}", WHITE, screen, x=110, y=630, font_size=18, alignment="topleft")
+                                        draw_text(f"{line2}", WHITE, screen, x=110, y=630 + 30, font_size=18, alignment="topleft")
+                                        draw_text(f"{line3}", WHITE, screen, x=110, y=630 + 60, font_size=18, alignment="topleft")
+
+                                        pygame.display.flip()
+                                        pygame.time.delay(5000)
+
+                                    elif current_char.name == "Rogue":
+                                        target_selected = False
+                                        while not target_selected:
+                                            if selected_target is None:
+                                                selected_target = 0  # Default enemy to attack
+                                            draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
+                                            pygame.display.flip()
+                                            for sub_event in pygame.event.get():
+                                                if sub_event.type == pygame.QUIT:
+                                                    pygame.quit()
+                                                    exit()
+                                                if sub_event.type == pygame.KEYDOWN:
+                                                    if sub_event.key == pygame.K_UP:
+                                                        selected_target = (selected_target - 1) % len(enemies) if selected_target is not None else 0
+                                                        menu_change_effect.play()
+                                                    if sub_event.key == pygame.K_DOWN:
+                                                        selected_target = (selected_target + 1) % len(enemies) if selected_target is not None else 0
+                                                        menu_change_effect.play()
+                                                    if sub_event.key == pygame.K_z:
+                                                    
+                                                        damage, action = current_char.rogue_special_attack(enemies[selected_target], all_sprites_group)
+                                                        
+                                                        # Attack animation
+                                                        while all_sprites_group.__len__():
+                                                            draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
+                                                            
+                                                            line1, line2, line3 = split_string_into_three_lines(action)
+                                                            draw_text(f"{line1}", WHITE, screen, x=110, y=630, font_size=18, alignment="topleft")
+                                                            draw_text(f"{line2}", WHITE, screen, x=110, y=630 + 30, font_size=18, alignment="topleft")
+                                                            draw_text(f"{line3}", WHITE, screen, x=110, y=630 + 60, font_size=18, alignment="topleft")
+
+                                                            all_sprites_group.update()
+                                                            all_sprites_group.draw(screen)
+                                                            pygame.display.flip()
+                                                        
+                                                        # After the animation is finished, we can take the damage
+                                                        shake_screen(screen, intensity=3, duration=50)
+                                                        take_damage_effect.play()
+                                                        enemies[selected_target].take_damage(damage)
+
+                                                        print(f'hp of {enemies[selected_target].name} after: {enemies[selected_target].hp}')
+                                                        if enemies[selected_target].hp == 0:
+                                                            enemies.pop(selected_target)
+                                                        target_selected = True
+
+                                    elif current_char.name == "Wizard":
+                                        damages, action = current_char.wizard_spell(enemies, all_sprites_group)
+                                                        
+                                        # Attack animation
+                                        sprites_count = all_sprites_group.__len__()
+                                        while all_sprites_group.__len__():
+                                            draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
+                                            
+                                            line1, line2, line3 = split_string_into_three_lines(action)
+                                            draw_text(f"{line1}", WHITE, screen, x=110, y=630, font_size=18, alignment="topleft")
+                                            draw_text(f"{line2}", WHITE, screen, x=110, y=630 + 30, font_size=18, alignment="topleft")
+                                            draw_text(f"{line3}", WHITE, screen, x=110, y=630 + 60, font_size=18, alignment="topleft")
+
+                                            all_sprites_group.update()
+                                            all_sprites_group.draw(screen)
+                                            pygame.display.flip()
+                                            if sprites_count > all_sprites_group.__len__():
+                                                shake_screen(screen, intensity=3, duration=50)
+                                                sprites_count -= 1
+                                        
+                                        # After the animation is finished, we can take the damage
+                                        shake_screen(screen, intensity=3, duration=50)
+                                        take_damage_effect.play()
+                                        for i, enemy in enumerate(enemies):
+                                            enemy.take_damage(damages[i])
+                                            if enemies[i].hp == 0:
+                                                enemies.pop(i)
+                                        
+                                    elif current_char.name == "Hunter":
+                                        target_selected = False
+                                        while not target_selected:
+                                            if selected_target is None:
+                                                selected_target = 0  # Default enemy to attack
+                                            draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
+                                            pygame.display.flip()
+                                            for sub_event in pygame.event.get():
+                                                if sub_event.type == pygame.QUIT:
+                                                    pygame.quit()
+                                                    exit()
+                                                if sub_event.type == pygame.KEYDOWN:
+                                                    if sub_event.key == pygame.K_UP:
+                                                        selected_target = (selected_target - 1) % len(enemies) if selected_target is not None else 0
+                                                        menu_change_effect.play()
+                                                    if sub_event.key == pygame.K_DOWN:
+                                                        selected_target = (selected_target + 1) % len(enemies) if selected_target is not None else 0
+                                                        menu_change_effect.play()
+                                                    if sub_event.key == pygame.K_z:
+                                                    
+                                                        damage, action = current_char.hunter_marked_shot(enemies[selected_target], all_sprites_group)
+                                                        
+                                                        # Attack animation
+                                                        while all_sprites_group.__len__():
+                                                            draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
+                                                            
+                                                            line1, line2, line3 = split_string_into_three_lines(action)
+                                                            draw_text(f"{line1}", WHITE, screen, x=110, y=630, font_size=18, alignment="topleft")
+                                                            draw_text(f"{line2}", WHITE, screen, x=110, y=630 + 30, font_size=18, alignment="topleft")
+                                                            draw_text(f"{line3}", WHITE, screen, x=110, y=630 + 60, font_size=18, alignment="topleft")
+
+                                                            all_sprites_group.update()
+                                                            all_sprites_group.draw(screen)
+                                                            pygame.display.flip()
+                                                        
+                                                        # After the animation is finished, we can take the damage
+                                                        shake_screen(screen, intensity=3, duration=50)
+                                                        take_damage_effect.play()
+                                                        enemies[selected_target].take_damage(damage)
+
+                                                        print(f'hp of {enemies[selected_target].name} after: {enemies[selected_target].hp}')
+                                                        if enemies[selected_target].hp == 0:
+                                                            enemies.pop(selected_target)
+                                                        target_selected = True
+
+                                    elif current_char.name == "Priest":
+                                        action = current_char.priest_heal(player_characters)
+                                        draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
+                                    
+                                        line1, line2, line3 = split_string_into_three_lines(action)
+                                        draw_text(f"{line1}", WHITE, screen, x=110, y=630, font_size=18, alignment="topleft")
+                                        draw_text(f"{line2}", WHITE, screen, x=110, y=630 + 30, font_size=18, alignment="topleft")
+                                        draw_text(f"{line3}", WHITE, screen, x=110, y=630 + 60, font_size=18, alignment="topleft")
+
+                                        pygame.display.flip()
+                                        pygame.time.delay(5000)
+
+                                    current_char.reset_num_rounds_to_use_skill()
+                                    action_chosen = True
+                                else:
+                                    action = f"You can only use the skill of this hero after {current_char.num_rounds_to_use_skill} rounds!"
+                                    draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
+                                
+                                    line1, line2, line3 = split_string_into_three_lines(action)
+                                    draw_text(f"{line1}", WHITE, screen, x=110, y=630, font_size=18, alignment="topleft")
+                                    draw_text(f"{line2}", WHITE, screen, x=110, y=630 + 30, font_size=18, alignment="topleft")
+                                    draw_text(f"{line3}", WHITE, screen, x=110, y=630 + 60, font_size=18, alignment="topleft")
+
+                                    pygame.display.flip()
+                                    pygame.time.delay(5000)
+
                         if event.key == pygame.K_x:
                             action_chosen = True
+            current_char.decrease_num_rounds_to_use_skill()
         else:
             if current_char.hp > 0:
-                # Define probabilities: 70% chance of True, 30% chance of False
-                probabilities = [0.7, 0.3]
-                options = [True, False]
+                # Define probabilities: 70% chance for option1, 20% for option2, 10% for option3
+                probabilities = [0.5, 0.3, 0.2]
+                options = ["Attack", "Defense", "Skill"]
 
-                if (random.choices(options, probabilities)[0]):             # If true enemie attacks (Else, it defends)
+                chosen_option = random.choices(options, probabilities)[0]
+
+                if chosen_option == "Attack":
                     target = random.choice(player_characters)               # chose a aleatory player hero
                     print(f'{current_char.name} is attacking {target.name}')
                     print(f'hp of {target.name} before: {target.hp}')
@@ -410,7 +575,7 @@ def battle(screen, background_image, player_characters, enemies):
                     pygame.display.flip()
                     pygame.time.delay(2000)
 
-                else:                                           # Else, it defends
+                elif chosen_option == "Defense":                                           # Else, it defends
                     print(f'{current_char.name} is defending')
                     current_char.is_defending = True
                     draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
@@ -418,6 +583,58 @@ def battle(screen, background_image, player_characters, enemies):
                     pygame.display.flip()
                     pygame.time.delay(3000)
 
+                else: #Skill
+                    if current_char.name == "Necromante":
+                        if len(enemies) == enemies_num:
+                            action = "Necromancer tried to use Skill, but his ally is already alive"
+                            draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
+                            
+                            line1, line2, line3 = split_string_into_three_lines(action)
+                            draw_text(f"{line1}", WHITE, screen, x=110, y=630, font_size=18, alignment="topleft")
+                            draw_text(f"{line2}", WHITE, screen, x=110, y=630 + 30, font_size=18, alignment="topleft")
+                            draw_text(f"{line3}", WHITE, screen, x=110, y=630 + 60, font_size=18, alignment="topleft")
+
+                            pygame.display.flip()
+                            pygame.time.delay(5000)
+
+                        else:
+                            enemy = enemies_copy[1]
+                            action = current_char.necromancer_dark_revival(enemy, enemies)
+                            draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
+                            
+                            line1, line2, line3 = split_string_into_three_lines(action)
+                            draw_text(f"{line1}", WHITE, screen, x=110, y=630, font_size=18, alignment="topleft")
+                            draw_text(f"{line2}", WHITE, screen, x=110, y=630 + 30, font_size=18, alignment="topleft")
+                            draw_text(f"{line3}", WHITE, screen, x=110, y=630 + 60, font_size=18, alignment="topleft")
+
+                            pygame.display.flip()
+                            pygame.time.delay(5000)
+
+                    elif current_char.name == "Caveira":
+                        target = random.choice(player_characters)               # chose a aleatory player hero
+                       
+                        damage, action = current_char.skeleton_bone_crush(target, all_sprites_group)
+                        
+                        # Attack animation
+                        while all_sprites_group.__len__():
+                            draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
+                            
+                            line1, line2, line3 = split_string_into_three_lines(action)
+                            draw_text(f"{line1}", WHITE, screen, x=110, y=630, font_size=18, alignment="topleft")
+                            draw_text(f"{line2}", WHITE, screen, x=110, y=630 + 30, font_size=18, alignment="topleft")
+                            draw_text(f"{line3}", WHITE, screen, x=110, y=630 + 60, font_size=18, alignment="topleft")
+
+                            all_sprites_group.update()
+                            all_sprites_group.draw(screen)
+                            pygame.display.flip()
+                        
+                        # After the animation is finished, we can take the damage
+                        shake_screen(screen, intensity=3, duration=50)
+                        take_damage_effect.play()
+                        target.take_damage(damage)
+
+                        if target.hp == 0:
+                            player_characters.remove(target)
         
         turn_index = (turn_index + 1) % len(turn_order)
         
@@ -517,3 +734,49 @@ def draw_insights_info(screen, enemie):
         draw_text(info_name + info, WHITE, screen, x=x, y=y, font_size=18, alignment="topleft")
     
     draw_text("Tap 'X' to go back!", WHITE, screen, x=650, y=570, font_size=16, alignment="topleft")
+
+def draw_skill_using_info(screen, enemie, action):
+    menu_bg = pygame.image.load("media/UI/introcomp_menu.png")
+
+    # Actions menu for player characters
+    menu_bg = pygame.transform.scale(menu_bg, (980, 235))
+    screen.blit(menu_bg, (15 ,SCREEN_HEIGHT - 230 - 15))
+
+    # Current turn message
+    draw_text(f"{enemie.name}'s is using it's skill!", WHITE, screen, x=110, y=570, font_size=18, alignment="topleft")
+
+    draw_text(action, WHITE, screen, x=110, y=680, font_size=14, alignment="topleft")
+    
+    draw_text("Tap 'X' to go back!", WHITE, screen, x=650, y=570, font_size=16, alignment="topleft")
+
+def split_string_into_three_lines(action):
+    """
+    Splits a given string into three approximately equal lines, ensuring that each split occurs at the nearest space.
+
+    Args:
+        action (str): The string to be split into three lines.
+
+    Returns:
+        tuple: A tuple containing three strings (line1, line2, line3) representing the split lines.
+    """
+    # Find the first split_index by dividing at the nearest space to one-third of the string length
+    split_index1 = len(action) // 3
+    while split_index1 < len(action) and action[split_index1] != ' ':
+        split_index1 += 1
+
+    # Find the second split_index by dividing at the nearest space to two-thirds of the string length
+    split_index2 = 2 * len(action) // 3
+    while split_index2 < len(action) and action[split_index2] != ' ':
+        split_index2 += 1
+
+    # Ensure that split indices are valid
+    split_index1 = max(0, min(split_index1, len(action)))
+    split_index2 = max(split_index1, min(split_index2, len(action)))
+
+    # Split the string into three lines
+    line1 = action[:split_index1].rstrip()
+    line2 = action[split_index1:split_index2].strip()
+    line3 = action[split_index2:].lstrip()
+
+    return line1, line2, line3
+
