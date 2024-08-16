@@ -16,12 +16,12 @@ BLUE = (0, 0, 255)
 # Efects settings
 pygame.mixer.init()
 
-menu_change_effect      = pygame.mixer.Sound("media/Sons/Efects/selection_menu_change.mp3")
-menu_select_effect      = pygame.mixer.Sound("media/Sons/Efects/selection_menu_select.mp3")
-menu_unselect_effect    = pygame.mixer.Sound("media/Sons/Efects/selection_menu_unselect.mp3")
-game_win_effect         = pygame.mixer.Sound("media/Sons/Efects/game_win.mp3")
-game_over_effect        = pygame.mixer.Sound("media/Sons/Efects/game_over.mp3")
-take_damage_effect      = pygame.mixer.Sound("media/Sons/Efects/take_damage.mp3")
+menu_change_effect      = pygame.mixer.Sound("../media/Sons/Efects/selection_menu_change.mp3")
+menu_select_effect      = pygame.mixer.Sound("../media/Sons/Efects/selection_menu_select.mp3")
+menu_unselect_effect    = pygame.mixer.Sound("../media/Sons/Efects/selection_menu_unselect.mp3")
+game_win_effect         = pygame.mixer.Sound("../media/Sons/Efects/game_win.mp3")
+game_over_effect        = pygame.mixer.Sound("../media/Sons/Efects/game_over.mp3")
+take_damage_effect      = pygame.mixer.Sound("../media/Sons/Efects/take_damage.mp3")
 
 # Font
 pygame.font.init()
@@ -47,7 +47,7 @@ def draw_text(text, color, surface, x, y, font_size=16, background=False, bg_col
         padding (int): The padding between the text and the background border (default is 5).
         alignment (str): The alignment of the text ("center" or "topleft").
     """
-    font = pygame.font.Font("media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", font_size)
+    font = pygame.font.Font("../media/Fonts/Press_Start_2P/PressStart2P-Regular.ttf", font_size)
     text_obj = font.render(text, True, color)
     text_rect = text_obj.get_rect()
 
@@ -78,11 +78,11 @@ def draw_heroes(screen, heroes, selected_index, selected_heroes):
     """
 
     # Load arrow image
-    arrow = pygame.image.load("media/UI/introcomp_seta.png")
+    arrow = pygame.image.load("../media/UI/introcomp_seta.png")
     arrow = pygame.transform.scale(arrow, (70, 70))
 
     # Load hero bg image
-    hero_bg = pygame.image.load("media/UI/introcomp_menu.png")
+    hero_bg = pygame.image.load("../media/UI/introcomp_menu.png")
     hero_bg = pygame.transform.scale(hero_bg, (140, 140))
 
     # x and y axis positions
@@ -200,12 +200,12 @@ def draw_battle_interface(screen, background_image, player_characters, enemies, 
     screen.blit(background_image, (0, 0))
 
     # Load and scale the arrow image
-    arrow = pygame.image.load("media/UI/introcomp_seta.png")
+    arrow = pygame.image.load("../media/UI/introcomp_seta.png")
     arrow = pygame.transform.scale(arrow, (70, 70))
     right_arrow = pygame.transform.rotate(arrow, 90)
 
     # Load the hero background image for the action menus
-    menu_bg = pygame.image.load("media/UI/introcomp_menu.png")
+    menu_bg = pygame.image.load("../media/UI/introcomp_menu.png")
 
     # Draw the left-side action menu background
     menu_bg = pygame.transform.scale(menu_bg, (580, 235))
@@ -761,7 +761,7 @@ def draw_insights_info(screen, enemie):
     """
 
     # Load and scale the menu background image for the player's action menu
-    menu_bg = pygame.image.load("media/UI/introcomp_menu.png")
+    menu_bg = pygame.image.load("../media/UI/introcomp_menu.png")
     
     # Draw the left-side menu background
     menu_bg = pygame.transform.scale(menu_bg, (580, 235))
