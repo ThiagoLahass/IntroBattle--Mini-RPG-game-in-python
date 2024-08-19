@@ -48,9 +48,9 @@ The end game screen, which appears whether you win or lose a battle:
 - `media/`: Contains all media assets used in the game.
 
   - `Background/`: Background images for the game.
-  - `Effects/`: Visual effects (e.g., blood effect).
   - `Fonts/`: Font files used in the game.
   - `Personagens/`: Character sprites.
+  - `Screenshots/`: Screenshots from the main parts of the game.
   - `Sons/`: Sound effects and music.
     - `Efects/`: Sound effects (e.g., game win, take damage).
     - `Musics/`: Background music tracks.
