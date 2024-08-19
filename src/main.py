@@ -1,7 +1,6 @@
 import pygame
 from character import Character
 from game import selection_screen, battle, finish_screen
-import game
 
 # Initialize Pygame
 pygame.init()
