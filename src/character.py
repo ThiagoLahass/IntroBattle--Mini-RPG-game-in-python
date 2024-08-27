@@ -159,7 +159,7 @@ class Character:
 
     def priest_heal(self, allies):
         """
-        Heals all allies by 50% of the Priest's maximum health.
+        Heals all allies by 50% of them maximum health.
 
         The function iterates through a list of allies, increasing each ally's health by 50% of the Priest's maximum health. If the healing amount exceeds the ally's maximum health, their health is capped at the maximum.
 
