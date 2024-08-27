@@ -22,6 +22,8 @@ menu_unselect_effect    = pygame.mixer.Sound("../media/Sons/Efects/selection_men
 game_win_effect         = pygame.mixer.Sound("../media/Sons/Efects/game_win.mp3")
 game_over_effect        = pygame.mixer.Sound("../media/Sons/Efects/game_over.mp3")
 take_damage_effect      = pygame.mixer.Sound("../media/Sons/Efects/take_damage.mp3")
+attack_effect           = pygame.mixer.Sound("../media/Sons/Efects/attack.mp3")
+defense_effect          = pygame.mixer.Sound("../media/Sons/Efects/defense.mp3")
 
 # Font
 pygame.font.init()
@@ -341,6 +343,7 @@ def battle(screen, background_image, player_characters, enemies):
                                                 selected_target = (selected_target + 1) % len(enemies) if selected_target is not None else 0
                                                 menu_change_effect.play()
                                             if sub_event.key == pygame.K_z:
+                                                attack_effect.play()
                                                 print(f'{current_char.name} is attacking {enemies[selected_target].name}')
                                                 print(f'hp of {enemies[selected_target].name} before: {enemies[selected_target].hp}')
                                                 
@@ -367,9 +370,11 @@ def battle(screen, background_image, player_characters, enemies):
                                                 target_selected = True
                                                 menu_unselect_effect.play()
                             if selected_action == 1:  # Defend
+                                defense_effect.play()
                                 print(f'{current_char.name} is defending')
                                 current_char.is_defending = True
                                 action_chosen = True
+                                pygame.time.delay(1000)
                             if selected_action == 2:  # Insight
                                 x_selected = False
                                 z_selected = False
@@ -403,6 +408,7 @@ def battle(screen, background_image, player_characters, enemies):
                                 menu_select_effect.play()
                                 if current_char.num_rounds_to_use_skill == 0:
                                     if current_char.name == "Paladin":
+                                        defense_effect.play()
                                         action = current_char.paladin_protect(player_characters)
                                         draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
                                         
@@ -433,7 +439,7 @@ def battle(screen, background_image, player_characters, enemies):
                                                         selected_target = (selected_target + 1) % len(enemies) if selected_target is not None else 0
                                                         menu_change_effect.play()
                                                     if sub_event.key == pygame.K_z:
-                                                    
+                                                        attack_effect.play()
                                                         damage, action = current_char.rogue_special_attack(enemies[selected_target], all_sprites_group)
                                                         
                                                         # Attack animation
@@ -460,6 +466,7 @@ def battle(screen, background_image, player_characters, enemies):
                                                         target_selected = True
 
                                     elif current_char.name == "Wizard":
+                                        attack_effect.play()
                                         damages, action = current_char.wizard_spell(enemies, all_sprites_group)
                                                         
                                         # Attack animation
@@ -506,7 +513,7 @@ def battle(screen, background_image, player_characters, enemies):
                                                         selected_target = (selected_target + 1) % len(enemies) if selected_target is not None else 0
                                                         menu_change_effect.play()
                                                     if sub_event.key == pygame.K_z:
-                                                    
+                                                        attack_effect.play()
                                                         damage, action = current_char.hunter_marked_shot(enemies[selected_target], all_sprites_group)
                                                         
                                                         # Attack animation
@@ -533,6 +540,7 @@ def battle(screen, background_image, player_characters, enemies):
                                                         target_selected = True
 
                                     elif current_char.name == "Priest":
+                                        defense_effect.play()
                                         action = current_char.priest_heal(player_characters)
                                         draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target, display_actions=False)
                                     
@@ -575,6 +583,7 @@ def battle(screen, background_image, player_characters, enemies):
                     print(f'{current_char.name} is attacking {target.name}')
                     print(f'hp of {target.name} before: {target.hp}')
                     damage = current_char.attack_target(target, all_sprites_group)
+                    attack_effect.play()
 
                     # delay
                     pygame.time.delay(500)
@@ -605,6 +614,7 @@ def battle(screen, background_image, player_characters, enemies):
 
                 elif chosen_option == "Defense":
                     # draw the current action 
+                    defense_effect.play()
                     print(f'{current_char.name} is defending')
                     current_char.is_defending = True
                     draw_battle_interface(screen, background_image, player_characters, enemies, current_char, selected_action, selected_target)
@@ -614,6 +624,7 @@ def battle(screen, background_image, player_characters, enemies):
 
                 else: #Skill
                     if current_char.name == "Necromante":
+                        defense_effect.play()
                         # Necromante tried to use his skill, but his ally is already alive, so it completes their life
                         if len(enemies) == enemies_num:
                             action = current_char.necromancer_dark_revival(enemies[1], enemies, revive=False)
@@ -633,7 +644,7 @@ def battle(screen, background_image, player_characters, enemies):
 
                     elif current_char.name == "Caveira":
                         target = random.choice(player_characters)               # chose a aleatory player hero
-                       
+                        attack_effect.play()
                         damage, action = current_char.skeleton_bone_crush(target, all_sprites_group)
                         
                         # Attack animation
